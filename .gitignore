@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Generated data and reports
+data/*.db
+output/
+
+# Local configuration and credentials
+.env
+.aws/

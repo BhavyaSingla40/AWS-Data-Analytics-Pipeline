@@ -1,0 +1,5 @@
+order_id,order_date,product,category,quantity,unit_price,region
+ORD-001,2026-01-03,Keyboard,Electronics,2,49.99,North
+ORD-002,2026-01-05,Notebook,Stationery,5,3.50,South
+ORD-003,2026-01-12,Mouse,Electronics,3,19.95,North
+ORD-004,2026-01-15,Desk,Furniture,-1,250.00,West
