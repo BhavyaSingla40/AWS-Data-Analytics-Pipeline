@@ -3,6 +3,8 @@ import sqlite3
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
+from validation import validate_sale
+
 
 ROOT = Path(__file__).parent
 SOURCE = ROOT / "data" / "sales.csv"
@@ -37,49 +39,24 @@ with sqlite3.connect(DATABASE) as connection:
 
         for line_number, row in enumerate(reader, start=2):
             try:
-                required = (
-                    "order_id", "order_date", "product",
-                    "category", "quantity", "unit_price", "region"
-                )
-
-                if any(not row.get(field, "").strip() for field in required):
-                    raise ValueError("A required field is missing")
-
-                order_id = row["order_id"].strip()
+                sale = validate_sale(row)
+                order_id = sale["order_id"]
 
                 if order_id in seen_ids:
                     raise ValueError("Duplicate order ID")
 
-                order_date = date.fromisoformat(row["order_date"].strip())
-                quantity = int(row["quantity"])
-                price = Decimal(row["unit_price"])
-
-                if quantity <= 0:
-                    raise ValueError("Quantity must be positive")
-
-                if not price.is_finite() or price < 0:
-                    raise ValueError("Price must be finite and nonnegative")
-
-                if price != price.quantize(Decimal("0.01")):
-                    raise ValueError("Price cannot have more than two decimals")
-
-                revenue_cents = int(quantity * price * 100)
-
                 connection.execute(
                     "INSERT INTO sales VALUES (?, ?, ?, ?, ?, ?, ?)",
                     (
-                        order_id,
-                        order_date.isoformat(),
-                        row["product"].strip(),
-                        row["category"].strip(),
-                        quantity,
-                        revenue_cents,
-                        row["region"].strip(),
+                        sale["order_id"],
+                        sale["order_date"],
+                        sale["product"],
+                        sale["category"],
+                        sale["quantity"],
+                        sale["revenue_cents"],
+                        sale["region"],
                     ),
                 )
-
-                seen_ids.add(order_id)
-                accepted += 1
 
             except (ValueError, InvalidOperation) as error:
                 rejected += 1
